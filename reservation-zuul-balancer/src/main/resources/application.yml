@@ -20,4 +20,8 @@ zuul:
       path: /reservation/**
       serviceId: reservation-service
       stripPrefix: true
+    event-logger-service:
+      path: /logger/**
+      serviceId: event-logger-service
+      stripPrefix: true
   ignored-services: '*'
