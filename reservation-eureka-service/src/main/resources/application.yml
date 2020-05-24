@@ -3,7 +3,7 @@ spring:
   application:
     name: reservation-service
 server:
-  port: 0
+  port: 8095
 eureka:
   client:
     serviceUrl:

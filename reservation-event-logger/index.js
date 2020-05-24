@@ -1,12 +1,24 @@
 const express = require('express');
+const bodyParser = require('body-parser');
 const {argv} = require('yargs')
-const Eureka = require('eureka-js-client').Eureka;
+const eurekaClient = require('./eurekaClient')
+const databaseClient = require('./databaseClient')
 
 const SERVER_PORT = argv.port;
 
 const app = express();
-app.get('/hello', (req, res) => {
+app.use(bodyParser.json());
+
+app.get('/status', (req, res) => {
     res.send(`Hello from NodeJS port: ${SERVER_PORT}`);
+});
+
+// Create new event
+app.post('/event', (req, res) => {
+    let {type, reservationId, name} = req.body;
+    databaseClient.insert({type: type, reservationId: reservationId, name: name});
+    console.log('new event inserted');
+    res.statusCode = 200;
     res.end();
 });
 
@@ -18,39 +30,7 @@ app.listen(SERVER_PORT, () => {
     console.log(`user-service on ${SERVER_PORT}`);
 });
 
-// example configuration
-const client = new Eureka({
-                              instance: {
-                                  id: 'event-logger-service',
-                                  instanceId: `event-logger-service:${SERVER_PORT}`,
-                                  app: `event-logger-service`,
-                                  vipAddress: `event-logger-service`,
-                                  hostName: `localhost:${SERVER_PORT}`,
-                                  ipAddr: '127.0.0.1',
-                                  statusPageUrl: `http://localhost:${SERVER_PORT}`,
-                                  port: {
-                                      '$': 0,
-                                      '@enabled': 'true',
-                                  },
-                                  dataCenterInfo: {
-                                      '@class': 'com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo',
-                                      name: 'MyOwn',
-                                  }
-                              },
-                              eureka: {
-                                  // host: 'localhost',
-                                  // port: 8761,
-                                  // servicePath: '/eureka/apps/',
-                                  preferIpAddress: true,
-                                  serviceUrls: {
-                                      default: [
-                                          'http://localhost:8761/eureka/apps'
-                                      ]
-                                  }
-                              }
-                          });
-
-client.start(error => {
+eurekaClient.createEurekaClient(SERVER_PORT).start(error => {
     if (error) {
         console.error(error);
     }
